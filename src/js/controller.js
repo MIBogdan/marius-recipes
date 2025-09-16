@@ -13,43 +13,39 @@ import addRecipeView from "./views/addRecipeView.js";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-// --- SPRITE INJECTION (cache-proof for Netlify/CDNs) ---
 (async () => {
   try {
-    // 1) Bust CDN conditional caching to avoid 304-without-body
+    // Bust caching to ensure we actually get content
     const bust = `${iconsUrl}${iconsUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
-    let res = await fetch(bust, { cache: "reload" });
-    let svgText = await res.text();
+    const res = await fetch(bust, { cache: "reload" });
+    const svgText = await res.text();
 
-    // If we still somehow got an empty body, do a second try without buster
-    if (!svgText || svgText.trim() === "") {
-      res = await fetch(iconsUrl, { cache: "no-store" });
-      svgText = await res.text();
-    }
-
-    // 2) Parse into a REAL <svg> element
+    // Parse into a REAL <svg>
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
     const spriteEl = svgDoc.documentElement;
 
-    // 3) Hide safely (NOT display:none) so <use> can resolve
-    spriteEl.setAttribute("aria-hidden", "true");
-    spriteEl.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden;");
+    // Ensure the legacy namespace exists for xlink:href
+    spriteEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    spriteEl.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-    // 4) Prepend to <body>
+    // Hide safely (not display:none)
+    spriteEl.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden;");
+    spriteEl.setAttribute("aria-hidden", "true");
+
     document.body.prepend(spriteEl);
 
-    // 5) Ensure both href & xlink:href (covers engine quirks)
+    // Rebind both href + xlink:href for all <use>
     const XLINK = "http://www.w3.org/1999/xlink";
     document.querySelectorAll("use").forEach((u) => {
       const val = u.getAttribute("href") || u.getAttribute("xlink:href");
-      if (val) {
-        u.setAttribute("href", val);
-        u.setAttributeNS(XLINK, "xlink:href", val);
-      }
+
+      if (!val) return;
+      u.setAttribute("href", val);
+      u.setAttributeNS(XLINK, "xlink:href", val);
     });
   } catch (e) {
-    console.error("Failed to inject SVG sprite:", e);
+    console.error("SVG sprite inject failed:", e);
   }
 })();
 
