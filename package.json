@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html --dist-dir ./dist --public-url /"
+    "build": "parcel build index.html --dist-dir ./dist --public-url / && cp src/img/icons.svg dist/icons.svg"
   },
   "keywords": [],
   "author": "",

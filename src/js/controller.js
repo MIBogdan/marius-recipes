@@ -1,7 +1,7 @@
 import * as model from "./model.js";
 
 // Import as URL that Parcel will rewrite to /icons.[hash].svg
-import iconsUrl from "url:../img/icons.svg";
+// import iconsUrl from "url:../img/icons.svg";
 import { MODAL_CLOSE_SEC } from "./config.js";
 import recipeView from "./views/recipeView.js";
 import searchView from "./views/searchView.js";
@@ -13,37 +13,23 @@ import addRecipeView from "./views/addRecipeView.js";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
+const iconsUrl = "/icons.svg";
+
 (async () => {
   try {
-    // Bust caching to ensure we actually get content
-    const bust = `${iconsUrl}${iconsUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
-    const res = await fetch(bust, { cache: "reload" });
+    const res = await fetch(iconsUrl, { cache: "no-cache" });
     const svgText = await res.text();
 
-    // Parse into a REAL <svg>
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
     const spriteEl = svgDoc.documentElement;
 
-    // Ensure the legacy namespace exists for xlink:href
+    // Keep it resolvable by <use>, but hidden
+    spriteEl.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden");
     spriteEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     spriteEl.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-    // Hide safely (not display:none)
-    spriteEl.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden;");
-    spriteEl.setAttribute("aria-hidden", "true");
-
     document.body.prepend(spriteEl);
-
-    // Rebind both href + xlink:href for all <use>
-    const XLINK = "http://www.w3.org/1999/xlink";
-    document.querySelectorAll("use").forEach((u) => {
-      const val = u.getAttribute("href") || u.getAttribute("xlink:href");
-
-      if (!val) return;
-      u.setAttribute("href", val);
-      u.setAttributeNS(XLINK, "xlink:href", val);
-    });
   } catch (e) {
     console.error("SVG sprite inject failed:", e);
   }
