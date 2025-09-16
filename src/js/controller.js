@@ -13,51 +13,43 @@ import addRecipeView from "./views/addRecipeView.js";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-// --- ULTRA-ROBUST SPRITE INJECTION & REFRESH ---
+// --- SPRITE INJECTION (cache-proof for Netlify/CDNs) ---
 (async () => {
   try {
-    // 1) Fetch sprite with no-cache to avoid stale/incomplete content on CDNs
-    const res = await fetch(iconsUrl, { cache: "no-cache" });
-    const svgText = await res.text();
+    // 1) Bust CDN conditional caching to avoid 304-without-body
+    const bust = `${iconsUrl}${iconsUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
+    let res = await fetch(bust, { cache: "reload" });
+    let svgText = await res.text();
 
-    // 2) Parse into a REAL <svg> element (not innerHTML in a div)
+    // If we still somehow got an empty body, do a second try without buster
+    if (!svgText || svgText.trim() === "") {
+      res = await fetch(iconsUrl, { cache: "no-store" });
+      svgText = await res.text();
+    }
+
+    // 2) Parse into a REAL <svg> element
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
     const spriteEl = svgDoc.documentElement;
 
-    // 3) Hide safely so <use> can resolve (NOT display:none)
+    // 3) Hide safely (NOT display:none) so <use> can resolve
     spriteEl.setAttribute("aria-hidden", "true");
     spriteEl.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden;");
 
-    // 4) Prepend to <body> BEFORE we touch any <use>
+    // 4) Prepend to <body>
     document.body.prepend(spriteEl);
 
-    // 5) Force every <use> to re-bind AFTER the sprite exists
+    // 5) Ensure both href & xlink:href (covers engine quirks)
     const XLINK = "http://www.w3.org/1999/xlink";
-
-    const refreshUses = () => {
-      document.querySelectorAll("use").forEach((u) => {
-        const val = u.getAttribute("href") || u.getAttribute("xlink:href") || u.getAttributeNS(XLINK, "href") || u.getAttributeNS(XLINK, "xlink:href");
-
-        if (!val) return;
-
-        // Set BOTH modern and legacy attributes to cover all renderers
+    document.querySelectorAll("use").forEach((u) => {
+      const val = u.getAttribute("href") || u.getAttribute("xlink:href");
+      if (val) {
         u.setAttribute("href", val);
         u.setAttributeNS(XLINK, "xlink:href", val);
-
-        // Nudge the browser to repaint if needed
-        // (toggle a non-layout-affecting attribute)
-        u.setAttribute("data-refresh", Date.now().toString());
-      });
-    };
-
-    // Run once now…
-    refreshUses();
-    // …and again on DOMContentLoaded & load (covers static HTML + view renders)
-    window.addEventListener("DOMContentLoaded", refreshUses);
-    window.addEventListener("load", refreshUses);
+      }
+    });
   } catch (e) {
-    console.error("Failed to inject/refresh SVG sprite:", e);
+    console.error("Failed to inject SVG sprite:", e);
   }
 })();
 
