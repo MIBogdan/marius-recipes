@@ -1,7 +1,7 @@
 import * as model from "./model.js";
 
 // Import as URL that Parcel will rewrite to /icons.[hash].svg
-import iconsUrl from 'url:../img/icons.svg';
+import iconsUrl from "url:../img/icons.svg";
 import { MODAL_CLOSE_SEC } from "./config.js";
 import recipeView from "./views/recipeView.js";
 import searchView from "./views/searchView.js";
@@ -10,32 +10,37 @@ import paginationView from "./views/paginationView.js";
 import bookmarksView from "./views/bookmarksView.js";
 import addRecipeView from "./views/addRecipeView.js";
 
-
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-// ---- SAFE SPRITE INJECTION ----
+// ---- ROBUST SPRITE INJECTION (works on Netlify) ----
 (async () => {
   try {
-    const res = await fetch(iconsUrl);
+    const res = await fetch(iconsUrl, { cache: "no-cache" });
     const svgText = await res.text();
 
-    // Parse to a real <svg> node (not innerHTML into a <div>)
+    // Parse to a real <svg> element (not innerHTML into a <div>)
     const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-    const spriteEl = svgDoc.documentElement;
+    const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+    const spriteEl = svgDoc.documentElement; // <svg>…<symbol id="icon-…">
 
-    // Hide safely (not display:none) so <use> can reference the symbols
-    spriteEl.setAttribute('aria-hidden', 'true');
-    spriteEl.setAttribute(
-      'style',
-      'position:absolute;width:0;height:0;overflow:hidden;'
-    );
+    // Hide safely (not display:none) so <use> can resolve
+    spriteEl.setAttribute("aria-hidden", "true");
+    spriteEl.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden;");
 
     // Put it as the very first element in <body>
     document.body.prepend(spriteEl);
+
+    // Cross-browser guard: ensure every <use> also has xlink:href
+    const XLINK = "http://www.w3.org/1999/xlink";
+    document.querySelectorAll("use").forEach((u) => {
+      const val = u.getAttribute("href") || u.getAttribute("xlink:href");
+      if (val && !u.getAttribute("xlink:href")) {
+        u.setAttributeNS(XLINK, "xlink:href", val);
+      }
+    });
   } catch (e) {
-    console.error('Failed to inject SVG sprite:', e);
+    console.error("Failed to inject SVG sprite:", e);
   }
 })();
 
