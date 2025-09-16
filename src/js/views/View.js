@@ -1,4 +1,4 @@
-import icons from "../../img/icons.svg";
+import icons from 'url:../../img/icons.svg';
 import { Fraction } from 'fraction.js';
 
 export default class View {

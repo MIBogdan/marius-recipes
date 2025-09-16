@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html --dist-dir ./dist"
+    "build": "rm -rf .parcel-cache dist && npm run build"
   },
   "keywords": [],
   "author": "",
