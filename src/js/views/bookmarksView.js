@@ -1,7 +1,5 @@
 import View from './View';
 import previewView from './previewView';
-// import icons from 'url:../../img/icons.svg';
-
 
 
 class BookmarksView extends View {

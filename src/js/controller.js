@@ -1,8 +1,7 @@
 import * as model from "./model.js";
-// import "url:../img/icons.svg";
-// import sprite from "raw:../img/icons.svg";
-import sprite from "../img/icons.svg"; // ✅ CORRECT
 
+// Import as URL that Parcel will rewrite to /icons.[hash].svg
+import iconsUrl from 'url:../img/icons.svg';
 import { MODAL_CLOSE_SEC } from "./config.js";
 import recipeView from "./views/recipeView.js";
 import searchView from "./views/searchView.js";
@@ -11,10 +10,23 @@ import paginationView from "./views/paginationView.js";
 import bookmarksView from "./views/bookmarksView.js";
 import addRecipeView from "./views/addRecipeView.js";
 
+
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-document.body.insertAdjacentHTML("afterbegin", sprite);
+// Inject sprite at runtime
+(async () => {
+  try {
+    const res = await fetch(iconsUrl);
+    const svg = await res.text();
+    const wrap = document.createElement('div');
+    wrap.style.display = 'none';
+    wrap.innerHTML = svg;
+    document.body.prepend(wrap);
+  } catch (e) {
+    console.error('Failed to load SVG sprite:', e);
+  }
+})();
 
 // if(module.hot) {
 //   module.hot.accept();
