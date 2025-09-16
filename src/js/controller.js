@@ -14,17 +14,28 @@ import addRecipeView from "./views/addRecipeView.js";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-// Inject sprite at runtime
+// ---- SAFE SPRITE INJECTION ----
 (async () => {
   try {
     const res = await fetch(iconsUrl);
-    const svg = await res.text();
-    const wrap = document.createElement('div');
-    wrap.style.display = 'none';
-    wrap.innerHTML = svg;
-    document.body.prepend(wrap);
+    const svgText = await res.text();
+
+    // Parse to a real <svg> node (not innerHTML into a <div>)
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    const spriteEl = svgDoc.documentElement;
+
+    // Hide safely (not display:none) so <use> can reference the symbols
+    spriteEl.setAttribute('aria-hidden', 'true');
+    spriteEl.setAttribute(
+      'style',
+      'position:absolute;width:0;height:0;overflow:hidden;'
+    );
+
+    // Put it as the very first element in <body>
+    document.body.prepend(spriteEl);
   } catch (e) {
-    console.error('Failed to load SVG sprite:', e);
+    console.error('Failed to inject SVG sprite:', e);
   }
 })();
 
