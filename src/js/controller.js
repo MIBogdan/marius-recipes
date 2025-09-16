@@ -13,34 +13,51 @@ import addRecipeView from "./views/addRecipeView.js";
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-// ---- ROBUST SPRITE INJECTION (works on Netlify) ----
+// --- ULTRA-ROBUST SPRITE INJECTION & REFRESH ---
 (async () => {
   try {
+    // 1) Fetch sprite with no-cache to avoid stale/incomplete content on CDNs
     const res = await fetch(iconsUrl, { cache: "no-cache" });
     const svgText = await res.text();
 
-    // Parse to a real <svg> element (not innerHTML into a <div>)
+    // 2) Parse into a REAL <svg> element (not innerHTML in a div)
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-    const spriteEl = svgDoc.documentElement; // <svg>…<symbol id="icon-…">
+    const spriteEl = svgDoc.documentElement;
 
-    // Hide safely (not display:none) so <use> can resolve
+    // 3) Hide safely so <use> can resolve (NOT display:none)
     spriteEl.setAttribute("aria-hidden", "true");
     spriteEl.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden;");
 
-    // Put it as the very first element in <body>
+    // 4) Prepend to <body> BEFORE we touch any <use>
     document.body.prepend(spriteEl);
 
-    // Cross-browser guard: ensure every <use> also has xlink:href
+    // 5) Force every <use> to re-bind AFTER the sprite exists
     const XLINK = "http://www.w3.org/1999/xlink";
-    document.querySelectorAll("use").forEach((u) => {
-      const val = u.getAttribute("href") || u.getAttribute("xlink:href");
-      if (val && !u.getAttribute("xlink:href")) {
+
+    const refreshUses = () => {
+      document.querySelectorAll("use").forEach((u) => {
+        const val = u.getAttribute("href") || u.getAttribute("xlink:href") || u.getAttributeNS(XLINK, "href") || u.getAttributeNS(XLINK, "xlink:href");
+
+        if (!val) return;
+
+        // Set BOTH modern and legacy attributes to cover all renderers
+        u.setAttribute("href", val);
         u.setAttributeNS(XLINK, "xlink:href", val);
-      }
-    });
+
+        // Nudge the browser to repaint if needed
+        // (toggle a non-layout-affecting attribute)
+        u.setAttribute("data-refresh", Date.now().toString());
+      });
+    };
+
+    // Run once now…
+    refreshUses();
+    // …and again on DOMContentLoaded & load (covers static HTML + view renders)
+    window.addEventListener("DOMContentLoaded", refreshUses);
+    window.addEventListener("load", refreshUses);
   } catch (e) {
-    console.error("Failed to inject SVG sprite:", e);
+    console.error("Failed to inject/refresh SVG sprite:", e);
   }
 })();
 
