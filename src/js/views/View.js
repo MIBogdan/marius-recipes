@@ -1,4 +1,6 @@
-import icons from 'url:../../img/icons.svg';
+// import icons from 'url:../../img/icons.svg';
+import sprite from "../../img/icons.svg";
+
 import { Fraction } from 'fraction.js';
 
 export default class View {
@@ -59,7 +61,7 @@ export default class View {
     const markup = `
         <div class="spinner">
           <svg>
-            <use href="${icons}#icon-loader"></use>
+            <use href="#icon-loader"></use>
           </svg>
         </div>
         `;
@@ -85,7 +87,7 @@ export default class View {
           <div class="error">
             <div>
               <svg>
-                <use href="${icons}#icon-alert-triangle"></use>
+                <use href="#icon-alert-triangle"></use>
               </svg>
             </div>
             <p>${message}</p>
@@ -100,7 +102,7 @@ export default class View {
           <div class="message">
             <div>
               <svg>
-                <use href="${icons}#icon-smile"></use>
+                <use href="#icon-smile"></use>
               </svg>
             </div>
             <p>${message}</p>

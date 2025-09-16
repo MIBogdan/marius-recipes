@@ -1,5 +1,7 @@
 import * as model from "./model.js";
-import "url:../img/icons.svg";
+// import "url:../img/icons.svg";
+// import sprite from "raw:../img/icons.svg";
+import sprite from "../img/icons.svg"; // ✅ CORRECT
 
 import { MODAL_CLOSE_SEC } from "./config.js";
 import recipeView from "./views/recipeView.js";
@@ -11,6 +13,8 @@ import addRecipeView from "./views/addRecipeView.js";
 
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+
+document.body.insertAdjacentHTML("afterbegin", sprite);
 
 // if(module.hot) {
 //   module.hot.accept();

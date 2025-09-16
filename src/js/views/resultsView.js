@@ -1,6 +1,8 @@
 import View from "./View";
 import previewView from "./previewView";
-import icons from 'url:../../img/icons.svg';
+// import icons from 'url:../../img/icons.svg';
+import sprite from "../../img/icons.svg";
+
 
 class ResultsView extends View {
   _parentElement = document.querySelector('.results');
