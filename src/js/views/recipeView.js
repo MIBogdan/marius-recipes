@@ -2,7 +2,7 @@ import View from './View';
 
 // import icons from '../img/icons.svg'; // Parcel 1
 // import icons from 'url:../../img/icons.svg'; // Parcel 2
-import sprite from "../../img/icons.svg";
+
 
 
 class RecipeView extends View {

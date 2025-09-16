@@ -1,5 +1,5 @@
 // import icons from 'url:../../img/icons.svg';
-import sprite from "../../img/icons.svg";
+
 
 import { Fraction } from 'fraction.js';
 

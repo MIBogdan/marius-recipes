@@ -1,6 +1,6 @@
 import View from './View';
 // import icons from 'url:../../img/icons.svg';
-import sprite from "../../img/icons.svg";
+
 
 
 class AddRecipeView extends View {
