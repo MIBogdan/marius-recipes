@@ -35,9 +35,9 @@ const iconsUrl = "/icons.svg";
   }
 })();
 
-// if(module.hot) {
-//   module.hot.accept();
-// }
+const uploadFormEl = document.querySelector(".upload");
+const UPLOAD_DEFAULT_HTML = uploadFormEl.innerHTML;
+
 
 ///////////////////////////////////////
 
@@ -144,15 +144,37 @@ const controlAddRecipe = async function (newRecipe) {
     // Change ID in URL
     window.history.pushState(null, "", `#${model.state.recipe.id}`);
 
-    // Close form window
-    setTimeout(function () {
-      addRecipeView.toggleWindow();
+    // // Close form window
+    // setTimeout(function () {
+    //   addRecipeView.toggleWindow();
+    // }, MODAL_CLOSE_SEC * 1000);
+
+    // schedule auto-close
+    const autoId = setTimeout(() => {
+      // guard: only close if still open
+      const win = document.querySelector(".add-recipe-window");
+      if (win && !win.classList.contains("hidden")) addRecipeView.toggleWindow();
     }, MODAL_CLOSE_SEC * 1000);
+
+    // cancel auto-close if user closes manually
+    [".btn--close-modal", ".overlay"].forEach((sel) => {
+      document.querySelector(sel)?.addEventListener(
+        "click",
+        () => clearTimeout(autoId),
+        { once: true } // listener removes itself
+      );
+    });
   } catch (err) {
     console.error(err);
     addRecipeView.renderError(err.message);
   }
 };
+
+// whenever the Add Recipe button is clicked, restore the form markup
+document.querySelector(".nav__btn--add-recipe").addEventListener("click", () => {
+  uploadFormEl.innerHTML = UPLOAD_DEFAULT_HTML;
+  uploadFormEl.reset?.();
+});
 
 const init = function () {
   bookmarksView.addHandlerRender(controlBookmarks);
